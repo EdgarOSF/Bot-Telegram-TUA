@@ -24,9 +24,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Enviar mensaje inicial con botones
     mensaje = """
-*¡Hola\! ¿En qué te puedo ayudar\?* 🤖
+*Hola, ¿En qué te puedo ayudar?* 🤖
 
-¿Solicitas información de un exhorto\? Por favor, selecciona una opción:
+¿Solicitas información de un exhorto? Por favor, selecciona una opción:
     """
 
     await update.message.reply_text(mensaje, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
@@ -39,17 +39,17 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Verificar si el usuario seleccionó "Sí" o "No"
     if query.data == 'si':
-        await query.edit_message_text(text="*Proporciona el número de distrito\:*", parse_mode=ParseMode.MARKDOWN_V2)
+        await query.edit_message_text(text="*Proporciona el número de distrito:*", parse_mode=ParseMode.MARKDOWN_V2)
         # Flag para capturar la próxima entrada como número de distrito
         context.user_data['awaiting_distrito'] = True
     elif query.data == 'no':
         await query.edit_message_text(text="Gracias por tu respuesta. Si necesitas más ayuda, vuelve a iniciar.")
 
     # Verificar si el usuario desea recibir el archivo PDF por correo
-    elif query.data == 'enviar_pdf':
-        await query.edit_message_text(text="Por favor, proporciona tu correo electrónico:")
-        # Esperar el correo electrónico del usuario
-        context.user_data['awaiting_email'] = True
+    # elif query.data == 'enviar_pdf':
+    #     await query.edit_message_text(text="Por favor, proporciona tu correo electrónico:")
+    #     # Esperar el correo electrónico del usuario
+    #     context.user_data['awaiting_email'] = True
 
 
 # Función para manejar la entrada de texto del usuario
@@ -60,7 +60,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         distrito = update.message.text.strip()
         # Guardar el distrito en user_data
         context.user_data['distrito'] = distrito
-        await update.message.reply_text("Proporciona el número de expediente:")
+        await update.message.reply_text("*Proporciona el número de expediente:*", parse_mode=ParseMode.MARKDOWN_V2)
         context.user_data['awaiting_distrito'] = False
         # Esperar el expediente a continuación
         context.user_data['awaiting_expediente'] = True
@@ -85,20 +85,21 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if not result.empty:
             status = result.iloc[0]['ESTATUS DE LA DILIGENCA']
-            print('estatus', status)
             if status == 'DILIGENCIADO':
-                # Preguntar si desea recibir el PDF por correo
-                keyboard = [[InlineKeyboardButton(
-                    "Sí", callback_data='enviar_pdf'), InlineKeyboardButton("No", callback_data='no')]]
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                await update.message.reply_text("*Exhorto Diligenciado*\.\n\n¿Deseas recibir la diligencia por correo\?", reply_markup=reply_markup)
+                # Enviar el PDF directamente en el chat
+                pdf_path = "./212-24.pdf"  # Cambia la ruta al PDF correspondiente
+                await update.message.reply_text("Exhorto DILIGENCIADO.")
+                await update.message.reply_document(document=open(pdf_path, 'rb'), caption="Aquí tienes la diligencia del exhorto.")
+                # await despedida(update, context)
             else:
-                await update.message.reply_text(f"Exhorto *NO* Diligenciado\.\n_Razón\:_ {status}")
+                pdf_path2 = "./39-19.pdf"  # Cambia la ruta al PDF correspondiente
+                await update.message.reply_text(f"Exhorto NO DILIGENCIADO. Con estatus {status}")
+                await update.message.reply_document(document=open(pdf_path2, 'rb'), caption="Aquí tienes la razon.")
                 # Llama a la función de despedida
-                await despedida(update, context)
+                # await despedida(update, context)
 
         else:
-            await update.message.reply_text("Expediente *no encontrado*\.\nIntente nuevamente\.")
+            await update.message.reply_text("Expediente no encontrado.\nIntente nuevamente.")
             await despedida(update, context)  # Llama a la función de despedida
 
         # Fin del flujo de entrada
@@ -154,9 +155,9 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def despedida(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Envía el mensaje de despedida
     await update.message.reply_text(
-        "Gracias por usar el servicio\.\n\nSi necesitas más información, por favor contacta a: _vmozquedam@tribunalesagrarios.gob.mx_"
+        "Gracias por usar el servicio.\n\nSi necesitas más información, por favor contacta a: vmozquedam@tribunalesagrarios.gob.mx"
     )
-    # Envía la foto adjunta (asegúrate de que la ruta de la imagen sea correcta)
+    # Envía la foto adjunta
     photo_path = "./tua08v.png"
     try:
         with open(photo_path, 'rb') as photo:
